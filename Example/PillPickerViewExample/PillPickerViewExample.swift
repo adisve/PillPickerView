@@ -52,6 +52,7 @@ struct ContentView: View {
                 
                 /// PillPickerView usage example
                 PillPickerView(items: colorPills, selectedPills: $selectedColors)
+                    .pillStackStyle(StackStyle.noWrap)
                 
                 Text("Selected Colors:")
                     .font(.system(size: 20, weight: .semibold, design: .rounded))

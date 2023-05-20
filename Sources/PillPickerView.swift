@@ -38,6 +38,13 @@ public protocol Pill: Equatable, Hashable {
     var title: String { get }
 }
 
+// MARK: - Enums
+
+public enum StackStyle {
+    case wrap
+    case noWrap
+}
+
 // MARK: - Pill customizations
 
 public struct PillOptions {
@@ -52,8 +59,8 @@ public struct PillOptions {
     /// when animating in/out in its parent view
     public var animation: Animation = .spring()
     
-    /// Width of the pill
-    public var width: CGFloat = 50
+    /// Minimum width of the pill
+    public var minWidth: CGFloat = 50
     
     /// Height of the pill
     public var height: CGFloat = 15
@@ -78,6 +85,22 @@ public struct PillOptions {
     /// Padding of elements inside PillItem
     public var padding: CGFloat = 5
     
+    /// Whether pills should wrap to new line or not
+    public var stackStyle: StackStyle = StackStyle.noWrap
+    
+    /// Spacing applied vertically between pill rows
+    public var verticalSpacing: CGFloat = 5
+    
+    /// Spacing applied horizontally between pills
+    public var horizontalSpacing: CGFloat = 2
+    
+    /// The alignment of the pills in the `PillPickerView`
+    /// when not wrapping the content
+    public var staticAlignment: HorizontalAlignment = .leading
+    
+    /// The alignment of the pills in the `PillPickerView`
+    /// when it is wrapping the content
+    public var wrappingAlignment: Alignment = .topLeading
 }
 
 // MARK: - Main view
@@ -109,13 +132,16 @@ public struct PillPickerView<T: Pill>: View {
     // MARK: - Body
     
     public var body: some View {
-        FlowStack(items: items, viewGenerator: { item in
-            PillView(
-                options: options,
-                item: item,
-                selectedPills: $selectedPills
-            )
-        })
+        switch options.stackStyle {
+        case StackStyle.noWrap:
+            StaticStack(options: options, items: items, viewGenerator: { item in
+                PillView(options: options, item: item, selectedPills: $selectedPills)
+            })
+        case StackStyle.wrap:
+            FlowStack(options: options, items: items, viewGenerator: { item in
+                PillView(options: options, item: item, selectedPills: $selectedPills)
+            })
+        }
     }
 }
 
@@ -164,9 +190,9 @@ public extension PillPickerView {
     }
     
     /// The minimum width of each pill
-    func pillWidth(_ value: CGFloat) -> PillPickerView {
+    func pillMinWidth(_ value: CGFloat) -> PillPickerView {
         var view = self
-        view.options.width = value
+        view.options.minWidth = value
         return view
     }
 
@@ -199,9 +225,46 @@ public extension PillPickerView {
         return view
     }
     
+    /// Padding of content inside each pill
     func pillPadding(_ value: CGFloat) -> PillPickerView {
         var view = self
         view.options.padding = value
+        return view
+    }
+    
+    /// The stack style the PillPickerView uses, either wrapping
+    /// the pills to new lines or having them statically placed
+    func pillStackStyle(_ value: StackStyle) -> PillPickerView {
+        var view = self
+        view.options.stackStyle = value
+        return view
+    }
+    
+    /// Set the vertical spacing of pills inside PillPickerView
+    func pillViewVerticalSpacing(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.verticalSpacing = value
+        return view
+    }
+    
+    /// Set the horizontal spacing of pills inside PillPickerView
+    func pillViewHorizontalSpacing(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.horizontalSpacing = value
+        return view
+    }
+    
+    /// Set alignment of pills when statically placed
+    func pillViewStaticAlignment(_ value: HorizontalAlignment) -> PillPickerView {
+        var view = self
+        view.options.staticAlignment = value
+        return view
+    }
+    
+    /// Set alignment of pills when dynamically placed and wrapping
+    func pillViewWrappingAlignment(_ value: Alignment) -> PillPickerView {
+        var view = self
+        view.options.wrappingAlignment = value
         return view
     }
     
@@ -250,7 +313,7 @@ struct PillView<T: Pill>: View {
                 }
             }
             .padding(options.padding)
-            .frame(minWidth: options.width)
+            .frame(minWidth: options.minWidth)
         })
         .buttonStyle(
             PillItemStyle(
@@ -322,7 +385,70 @@ struct PillItemStyle: ButtonStyle {
     }
 }
 
+// MARK: - StaticStack
 
+
+/// Stack of pills not wrapping to a new line
+struct StaticStack<T, V>: View where T: Hashable, V: View {
+    
+    /// Alias for function type generating content
+    typealias ContentGenerator = (T) -> V
+    
+    let options: PillOptions
+    
+    /// Collection of items passed to view
+    var items: [T]
+    
+    /// Content generator function
+    var viewGenerator: ContentGenerator
+    
+    /// Chunk size which `items` is divided into
+    @State private var chunkSize: Int = 1
+    
+    private func calculateChunkSize(geometry: GeometryProxy) {
+        let availableWidth = geometry.size.width
+        let itemWidth: CGFloat = 100
+        
+        chunkSize = max(Int(availableWidth / itemWidth), 1)
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(alignment: options.staticAlignment, spacing: options.verticalSpacing) {
+                ForEach(items.chunked(into: chunkSize), id: \.self) { chunk in
+                    HStack(spacing: options.horizontalSpacing) {
+                        ForEach(chunk, id: \.self) { item in
+                            viewGenerator(item)
+                        }
+                    }
+                }
+            }
+            .onAppear {
+                calculateChunkSize(geometry: geometry)
+            }
+            
+            /// Dynamically generate chunk size based on
+            /// screen direction and dimension
+            .onChange(of: geometry.size.width) { _ in
+                calculateChunkSize(geometry: geometry)
+            }
+        }
+    }
+}
+
+// MARK: - Extension
+
+extension Array {
+    
+    /// This method takes an integer `size`
+    /// and returns a two-dimensional array ([[Element]])
+    /// where the original array is divided into chunks of the specified size.
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
+        }
+    }
+}
 
 // MARK: - FlowStack
 
@@ -336,17 +462,13 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
     /// Alias for function type generating content
     typealias ContentGenerator = (T) -> V
     
+    let options: PillOptions
+    
     /// Collection of items passed to view
     var items: [T]
     
     /// Content generator function
     var viewGenerator: ContentGenerator
-    
-    /// Horizontal spacing of each item
-    var horizontalSpacing: CGFloat = 2
-    
-    /// Vertical spacing for each item
-    var verticalSpacing: CGFloat = 0
 
     /// Current total height calculated
     @State private var totalHeight = CGFloat.zero
@@ -359,7 +481,7 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
                 generateContent(in: geometry)
             }
         }
-        .frame(height: totalHeight)
+        .frame(maxHeight: totalHeight)
     }
 
     // MARK: - Content Generation
@@ -368,11 +490,11 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         var width = CGFloat.zero
         var height = CGFloat.zero
 
-        return ZStack(alignment: .topLeading) {
+        return ZStack(alignment: options.wrappingAlignment) {
             ForEach(items, id: \.self) { item in
                 viewGenerator(item)
-                    .padding(.horizontal, horizontalSpacing)
-                    .padding(.vertical, verticalSpacing)
+                    .padding(.horizontal, options.horizontalSpacing)
+                    .padding(.vertical, options.verticalSpacing)
                     .alignmentGuide(.leading, computeValue: { dimension in
                         return calculateLeadingAlignment(dimension: dimension, item: item)
                     })
@@ -385,8 +507,12 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         
         // MARK: - Alignment calculations
         
+        /// Checks if adding the item's width to the current width value exceeds the
+        /// available width (given by `geometry.size.width`). If it does, it resets width
+        /// to 0 and subtracts the item's height from height to move to the next row.
+        /// Otherwise, it returns the current `width` value and updates `width` by subtracting the item's width.
         func calculateLeadingAlignment(dimension: ViewDimensions, item: T) -> CGFloat {
-            if abs(width - dimension.width) > geometry.size.width {
+            if abs(width - (dimension.width + dimension.width / 2)) > geometry.size.width {
                 width = 0
                 height -= dimension.height
             }
@@ -399,6 +525,9 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
             return result
         }
         
+        /// Used to calculate the top (vertical) alignment for each item.
+        /// It receives the item itself and returns the current height value.
+        /// If the item is the last one, it resets `height` to 0.
         func calculateTopAlignment(item: T) -> CGFloat {
             let result = height
             if item == items.last {
@@ -410,7 +539,10 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
     }
 
     // MARK: - Height Calculation
-
+    
+    /// Used to calculate the total height of the view. It wraps the ZStack
+    /// in a GeometryReader to obtain the height of the content and updates
+    /// the `totalHeight` state variable accordingly.
     private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
         return GeometryReader { geometry -> Color in
             let rect = geometry.frame(in: .local)
