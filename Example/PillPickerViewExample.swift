@@ -1,12 +1,21 @@
 //
-//  ContentView.swift
-//  Example
+//  PillPickerViewExample.swift
+//  PillPickerViewExample
 //
 //  Created by Adis Veletanlic on 2023-05-20.
 //
 
 import SwiftUI
 import PillPickerView
+
+@main
+struct PillPickerViewExample: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
 
 struct ContentView: View {
     // Sample model conforming to the `Pill` protocol
@@ -56,11 +65,5 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
     }
 }
