@@ -118,6 +118,8 @@ struct ContentView: View {
 
 In the example above, replace YourPillType with your custom pill type and yourItemList with an array of items conforming to the Pill protocol.
 
+<br>
+
 ## ✨ Customization
 
 PillPickerView offers a range of customization options to tailor the appearance of the pills to your app's design. You can customize the font, colors, animation, size, and other visual aspects of the pills by using the available modifier functions. 
