@@ -38,27 +38,53 @@ public protocol Pill: Equatable, Hashable {
     var title: String { get }
 }
 
+// MARK: - Pill customizations
+
+public struct PillOptions {
+    
+    /// Font type for a pill element
+    public var font: Font = .system(size: 14, weight: .semibold, design: .rounded)
+    
+    /// Border color of a pill
+    public var borderColor: Color = .clear
+    
+    /// The animation type which the pill will use
+    /// when animating in/out in its parent view
+    public var animation: Animation = .spring()
+    
+    /// Width of the pill
+    public var width: CGFloat = 50
+    
+    /// Height of the pill
+    public var height: CGFloat = 15
+    
+    /// Radius of the enclosing view of each pill
+    public var cornerRadius: CGFloat = 40
+    
+    /// The background color of a pill when it is marked
+    /// as being selected
+    public var selectedBackgroundColor: Color = .accentColor
+    
+    /// The foregound color of a pill when it is marked
+    /// as being selected
+    public var selectedForegroundColor: Color = .white
+    
+    /// Background color of a pill when it is not selected
+    public var normalBackgroundColor: Color = .accentColor.opacity(0.5)
+    
+    /// Foreground color of a pill when it is not selected
+    public var normalForegroundColor: Color = .white
+    
+}
+
 // MARK: - Main view
 
-/// This can be seen as a layer on top of the
-/// already existing FlowStack library, but
-/// giving some basic ease of use for views with collections
-/// that are meant to be toggleable.
 public struct PillPickerView<T: Pill>: View {
     
     // MARK: - Properties
     
-    /// Background color of a pill when toggled
-    let pillHighlightBackgroundColor: Color
-    
-    /// Foreground color of elements in pill when toggled
-    let pillHighlightForegroundColor: Color
-    
-    /// Background color of a pill when not toggled
-    let pillBackgroundColor: Color
-    
-    /// Foreground color of a pill when not toggled
-    let pillForegroundColor: Color
+    /// Options for configuring each individual PillView
+    public var options = PillOptions()
     
     /// Provider for the selectable items, passed as a
     /// @Binding list of elements conforming to PillEnum
@@ -71,17 +97,9 @@ public struct PillPickerView<T: Pill>: View {
     
     public init(
         items: [T],
-        pillHighlightBackgroundColor: Color = .blue,
-        pillHighlightForegroundColor: Color = .white,
-        pillBackgroundColor: Color = .secondary,
-        pillForegroundColor: Color = .white,
         selectedItemsProvider: Binding<[T]>
     ) {
         self.items = items
-        self.pillHighlightBackgroundColor = pillHighlightBackgroundColor
-        self.pillHighlightForegroundColor = pillHighlightForegroundColor
-        self.pillBackgroundColor = pillBackgroundColor
-        self.pillForegroundColor = pillForegroundColor
         self._selectedItemsProvider = selectedItemsProvider
     }
     
@@ -90,14 +108,94 @@ public struct PillPickerView<T: Pill>: View {
     public var body: some View {
         FlowStack(items: items, viewGenerator: { item in
             PillView(
-                highlightBackgroundColor: pillHighlightBackgroundColor,
-                backgroundColor: pillBackgroundColor,
-                highlightForegroundColor: pillHighlightForegroundColor,
-                foregroundColor: pillForegroundColor,
+                options: options,
                 item: item,
-                selectedPills: $selectedItemsProvider)
+                selectedPills: $selectedItemsProvider
+            )
         })
     }
+}
+
+// MARK: - Extensions
+
+public extension PillPickerView {
+    
+    /// The foreground color used for the title
+    /// and icon in each pill when not selected
+    func pillNormalForegroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.normalForegroundColor = value
+        return view
+    }
+    
+    /// The background color used for each pill
+    /// when not selected
+    func pillNormalBackgroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.normalBackgroundColor = value
+        return view
+    }
+    
+    /// The background color used for each pill when
+    /// marked as being selected
+    func pillSelectedBackgroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.selectedBackgroundColor = value
+        return view
+    }
+    
+    /// The foreground color used for the title
+    /// and icon in each pill when marked as being selected
+    func pillSelectedForegroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.selectedForegroundColor = value
+        return view
+    }
+    
+    /// The font used in each pill regardless of whether
+    /// it is selected or not
+    func pillFont(_ value: Font) -> PillPickerView {
+        var view = self
+        view.options.font = value
+        return view
+    }
+    
+    /// The minimum width of each pill
+    func pillWidth(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.width = value
+        return view
+    }
+
+    /// The height of each pill
+    func pillHeight(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.height = value
+        return view
+    }
+    
+    /// The corner radius of each pill
+    func pillCornerRadius(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.cornerRadius = value
+        return view
+    }
+    
+    /// The border color of the edges of each pill
+    func pillBorderColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.borderColor = value
+        return view
+    }
+    
+    /// The animation used when a pill is animated in
+    /// its parent element, toggled when selected/removed
+    func pillAnimation(_ value: Animation) -> PillPickerView {
+        var view = self
+        view.options.animation = value
+        return view
+    }
+    
 }
 
 // MARK: - Child views
@@ -107,17 +205,7 @@ struct PillView<T: Pill>: View {
     
     // MARK: - Properties
     
-    /// Background color of the pill when toggled
-    let highlightBackgroundColor: Color
-    
-    /// Background color of the pill when not toggled
-    let backgroundColor: Color
-    
-    /// Foreground color of the pill when toggled
-    let highlightForegroundColor: Color
-    
-    /// Foreground color of the pill when not toggled
-    let foregroundColor: Color
+    let options: PillOptions
     
     /// Passed element conforming to PillItem
     let item: T
@@ -125,11 +213,12 @@ struct PillView<T: Pill>: View {
     /// List of Binding items that are currently toggled
     @Binding var selectedPills: [T]
     
+    
     // MARK: - Body
     
     public var body: some View {
         Button(action: {
-            withAnimation(.spring()) {
+            withAnimation(options.animation) {
                 if !isItemSelected() {
                     selectedPills.append(item)
                 }
@@ -137,22 +226,31 @@ struct PillView<T: Pill>: View {
         }, label: {
             HStack {
                 Text(item.title)
+                    .font(options.font)
                     .foregroundColor(pillForegroundColor)
                 if isItemSelected() {
                     Image(systemName: "xmark")
+                        .font(options.font)
                         .foregroundColor(pillForegroundColor)
                         .padding(.leading, 5)
                         .onTapGesture {
-                            withAnimation(.spring()) {
+                            withAnimation(options.animation) {
                                 selectedPills.removeAll(where: { $0 == item })
                             }
                         }
                 }
             }
-            .frame(minWidth: 50)
+            .frame(minWidth: options.width)
+            .frame(height: options.height)
         })
-        /// Set the pill style and give some animation
-        .buttonStyle(PillItemStyle(color: pillBackgroundColor))
+        .buttonStyle(
+            PillItemStyle(
+                selected: isItemSelected(),
+                borderColor: options.borderColor,
+                cornerRadius: options.cornerRadius,
+                options: options
+            )
+        )
         .padding(5)
         .padding(.vertical, 2.5)
     }
@@ -165,22 +263,13 @@ struct PillView<T: Pill>: View {
         return selectedPills.contains(item)
     }
     
-    /// Retrieves the background color based
-    /// on the state of the element
-    var pillBackgroundColor: Color {
-        if isItemSelected() {
-            return highlightBackgroundColor
-        }
-        return backgroundColor
-    }
-    
     /// Retrieves the foreground color based
     /// on the state of the element
     private var pillForegroundColor: Color {
         if isItemSelected() {
-            return highlightForegroundColor
+            return options.selectedForegroundColor
         }
-        return foregroundColor
+        return options.normalForegroundColor
     }
 }
 
@@ -189,21 +278,42 @@ struct PillView<T: Pill>: View {
 /// Basic Pill item style, giving some
 /// bounce and label color
 struct PillItemStyle: ButtonStyle {
-    let color: Color
     
-    init(color: Color = .accentColor) {
-        self.color = color
-    }
+    /// Whether pill is selected or not
+    let selected: Bool
     
-    public func makeBody(configuration: Self.Configuration) -> some View {
+    /// Border color of the pill
+    let borderColor: Color
+    
+    /// Corner radius of the pills border
+    let cornerRadius: CGFloat
+    
+    let options: PillOptions
+    
+    func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(12)
-            .background(color)
-            .cornerRadius(30)
+            .background(background)
+            .foregroundColor(foreground)
+            .cornerRadius(cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(borderColor, lineWidth: 1)
+            )
             .scaleEffect(configuration.isPressed ? 0.9 : 1)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            .animation(options.animation, value: configuration.isPressed)
+    }
+    
+    private var background: Color {
+        return selected ? options.selectedBackgroundColor : options.normalBackgroundColor
+    }
+    
+    private var foreground: Color {
+        return selected ? options.selectedForegroundColor : options.normalForegroundColor
     }
 }
+
+
 
 // MARK: - FlowStack
 

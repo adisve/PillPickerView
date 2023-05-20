@@ -18,7 +18,9 @@ struct PillPickerViewExample: App {
 }
 
 struct ContentView: View {
-    // Sample model conforming to the `Pill` protocol
+    
+    /// Sample model conforming to the `Pill` protocol.
+    /// An element must have a `title` attribute.
     struct ColorPill: Pill {
         let title: String
         let color: Color
@@ -37,33 +39,29 @@ struct ContentView: View {
     ]
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Select Your Favorite Colors")
-                .font(.title)
-            
-            // PillPickerView usage example
-            PillPickerView(
-                items: colorPills,
-                pillHighlightBackgroundColor: .blue,
-                pillHighlightForegroundColor: .white,
-                pillBackgroundColor: .secondary,
-                pillForegroundColor: .white,
-                selectedItemsProvider: $selectedColors
-            )
-            
-            // Display selected colors
-            Text("Selected Colors:")
-                .font(.headline)
-            HStack(spacing: 10) {
-                ForEach(selectedColors, id: \.self) { colorPill in
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundColor(colorPill.color)
-                        .frame(width: 40, height: 40)
+        NavigationView {
+            VStack(alignment: .leading, spacing: 40) {
+                Text("Select Your Favorite Colors")
+                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                
+                // PillPickerView usage example
+                PillPickerView(items: colorPills, selectedItemsProvider: $selectedColors)
+                
+                Text("Selected Colors:")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                HStack(spacing: 10) {
+                    ForEach(selectedColors, id: \.self) { colorPill in
+                        RoundedRectangle(cornerRadius: 40)
+                            .foregroundColor(colorPill.color)
+                            .frame(width: 40, height: 40)
+                    }
                 }
+                
+                Spacer()
             }
-            
-            Spacer()
+            .padding()
+            .padding(.top, 15)
+            .navigationTitle("PillPickerView")
         }
-        .padding()
     }
 }
