@@ -19,6 +19,13 @@ A SwiftUI library to present a Pill Picker view
 
 <br>
 
+## How it looks
+
+<div style="display:flex; justify-content: center">
+    <img src="Assets/Showroom_1.png" alt="PillPickerView example 1" style="width: 200px;margin-right:50px;"/>
+    <img src="Assets/Showroom_2.png" alt="PillPickerView example 2" style="width: 200px;"/>
+</div>
+
 ## 📀 Installation
 Requires iOS 14+. PillPickerView can be installed through the [Swift Package Manager](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app) (recommended) or [Cocoapods](https://cocoapods.org/).
 
