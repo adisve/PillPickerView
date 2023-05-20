@@ -1,4 +1,5 @@
-![Header Image](Assets/PillPickerViewLogo.png)
+
+<img src="Assets/PillPickerViewLogo.png" alt="PillPickerView Logo" style="height: 150px;"/>
 
 # PillPickerView
 
