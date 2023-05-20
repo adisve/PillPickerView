@@ -13,8 +13,6 @@ A SwiftUI library to present a Pill Picker view
 
 - Simple API: PillPickerView follows a straightforward API design, making it easy to use. It automatically adjusts the layout of pills to fit within the available space horizontally.
 
-- iPadOS multitasking support: PillPickerView is designed to work with multitasking windows on iPadOS, providing a seamless experience across different app layouts.
-
 - Compatibility: Supports iOS 14+, macOS 11+
 
 - Lightweight and dependency-free: The library has a lightweight structure and does not have any external dependencies, minimizing its impact on your app's size and performance.
