@@ -17,6 +17,8 @@ struct PillPickerViewExample: App {
     }
 }
 
+// MARK: - Example
+
 struct ContentView: View {
     
     /// Sample model conforming to the `Pill` protocol.
@@ -26,8 +28,12 @@ struct ContentView: View {
         let color: Color
     }
     
+    /// Required collection of items confirming to `Pill`
+    /// which will be used for tracking which objects
+    /// are selected
     @State private var selectedColors: [ColorPill] = []
     
+    /// Collection of items conforming to `Pill`
     let colorPills: [ColorPill] = [
         ColorPill(title: "Red", color: .red),
         ColorPill(title: "Green", color: .green),
@@ -44,11 +50,12 @@ struct ContentView: View {
                 Text("Select Your Favorite Colors")
                     .font(.system(size: 26, weight: .semibold, design: .rounded))
                 
-                // PillPickerView usage example
-                PillPickerView(items: colorPills, selectedItemsProvider: $selectedColors)
+                /// PillPickerView usage example
+                PillPickerView(items: colorPills, selectedPills: $selectedColors)
                 
                 Text("Selected Colors:")
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
+                
                 HStack(spacing: 10) {
                     ForEach(selectedColors, id: \.self) { colorPill in
                         RoundedRectangle(cornerRadius: 40)

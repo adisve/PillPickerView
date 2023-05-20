@@ -75,6 +75,9 @@ public struct PillOptions {
     /// Foreground color of a pill when it is not selected
     public var normalForegroundColor: Color = .white
     
+    /// Padding of elements inside PillItem
+    public var padding: CGFloat = 5
+    
 }
 
 // MARK: - Main view
@@ -88,7 +91,7 @@ public struct PillPickerView<T: Pill>: View {
     
     /// Provider for the selectable items, passed as a
     /// @Binding list of elements conforming to PillEnum
-    @Binding var selectedItemsProvider: [T]
+    @Binding var selectedPills: [T]
     
     /// List of items that will be available to choose from
     let items: [T]
@@ -97,10 +100,10 @@ public struct PillPickerView<T: Pill>: View {
     
     public init(
         items: [T],
-        selectedItemsProvider: Binding<[T]>
+        selectedPills: Binding<[T]>
     ) {
         self.items = items
-        self._selectedItemsProvider = selectedItemsProvider
+        self._selectedPills = selectedPills
     }
     
     // MARK: - Body
@@ -110,7 +113,7 @@ public struct PillPickerView<T: Pill>: View {
             PillView(
                 options: options,
                 item: item,
-                selectedPills: $selectedItemsProvider
+                selectedPills: $selectedPills
             )
         })
     }
@@ -196,6 +199,12 @@ public extension PillPickerView {
         return view
     }
     
+    func pillPadding(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.padding = value
+        return view
+    }
+    
 }
 
 // MARK: - Child views
@@ -240,8 +249,8 @@ struct PillView<T: Pill>: View {
                         }
                 }
             }
+            .padding(options.padding)
             .frame(minWidth: options.width)
-            .frame(height: options.height)
         })
         .buttonStyle(
             PillItemStyle(
@@ -317,6 +326,9 @@ struct PillItemStyle: ButtonStyle {
 
 // MARK: - FlowStack
 
+/// View which automatically wraps element
+/// in a HStack to a newline if it overflows
+/// horizontally and does not fit the screen dimensions
 public struct FlowStack<T, V>: View where T: Hashable, V: View {
     
     // MARK: - Types and Properties
