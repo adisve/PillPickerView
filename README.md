@@ -21,7 +21,7 @@ A SwiftUI library to present a Pill Picker view
 
 <br>
 
-## Installation
+## 📀 Installation
 Requires iOS 14+. PillPickerView can be installed through the [Swift Package Manager](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app) (recommended) or [Cocoapods](https://cocoapods.org/).
 
 <table>
@@ -62,7 +62,7 @@ pod 'PillPickerView'
 
 <br>
 
-## Usage
+## 🧑‍💻 Usage
 
 Creating a PillPickerView
 
@@ -113,16 +113,84 @@ struct ContentView: View {
 
 In the example above, replace YourPillType with your custom pill type and yourItemList with an array of items conforming to the Pill protocol.
 
-## Customization
+## ✨ Customization
 
-Customize the appearance of the pill picker by chaining the available modifier functions. For example:
+PillPickerView offers a range of customization options to tailor the appearance of the pills to your app's design. You can customize the font, colors, animation, size, and other visual aspects of the pills by using the available modifier functions. 
+
+You can customize the appearance of the pills by chaining the available modifier functions on the PillPickerView. For example:
 
 ```swift
+PillPickerView(
+    items: yourItemList,
+    selectedPills: $selectedPills
+)
 .pillFont(.system(size: 16, weight: .semibold))
 .pillSelectedForegroundColor(.white)
 .pillSelectedBackgroundColor(.blue)
 ```
 
-PillPickerView offers a range of customization options to tailor the appearance of the pills to your app's design. You can customize the font, colors, animation, size, and other visual aspects of the pills by using the available modifier functions. 
+<br>
 
-The PillPickerView includes a wrapping mechanism that automatically adjusts the layout of pills to fit within the available space. If the pills exceed the horizontal width of the container, the view wraps the excess pills to a new line. This makes it easy to present a large number of pills without worrying about truncation. The automatic wrapping behavior ensures a visually pleasing and user-friendly experience for your app's pill picker interface.
+To change the font of the pills
+
+```swift
+.pillFont(.caption)
+```
+
+<br>
+
+To change the background color of a not selected and selected pill, respectively
+
+```swift
+.pillNormalBackgroundColor(.green)
+.pillSelectedBackgroundColor(.blue)
+```
+
+<br>
+
+To change the foreground color of a not selected and selected pill, respectively
+
+```swift
+.pillNormalForegroundColor(.orange)
+.pillSelectedForegroundColor(.white)
+```
+
+<br>
+
+The height and width of the pills can also be set, but width will be treated as the minimum width of the pills
+
+```swift
+.pillWidth(20)
+.pillHeight(10)
+```
+
+<br>
+
+Corner radius and border color can also be changed easily
+
+```swift
+.pillBorderColor(.green)
+.pillCornerRadius(40)
+```
+
+<br>
+
+You can also change the animation used when a pill is pressed or wrapped to a newline
+
+```swift
+.pillAnimation(.easeInOut)
+```
+
+<br>
+
+Padding can also be applied
+
+```swift
+.pillPadding(10)
+```
+
+<br>
+
+## Note:
+
+The PillPickerView includes a wrapping mechanism that automatically adjusts the layout of pills to fit within the available space. If the pills exceed the horizontal width of the container, the view wraps the excess pills to a new line. This makes it easy to present a large number of pills without worrying about truncation.
