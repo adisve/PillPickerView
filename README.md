@@ -92,6 +92,7 @@ PillPickerView(
 Here's an example usage of PillPickerView in a SwiftUI view:
 
 ```swift
+import PillPickerView
 
 struct ContentView: View {
     @State private var selectedPills: [YourPillType] = []
