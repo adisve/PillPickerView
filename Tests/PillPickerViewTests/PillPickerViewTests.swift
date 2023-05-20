@@ -1,11 +1,11 @@
 import XCTest
-@testable import WrappingPillView
+@testable import PillPickerView
 
-final class WrappingPillViewTests: XCTestCase {
+final class PillPickerViewTests: XCTestCase {
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(WrappingPillView().text, "Hello, World!")
+        XCTAssertEqual(PillPickerView().text, "Hello, World!")
     }
 }

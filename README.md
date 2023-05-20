@@ -1,3 +1,3 @@
-# WrappingPillView
+# PillPickerView
 
 A description of this package.
