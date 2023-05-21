@@ -21,6 +21,20 @@ A SwiftUI library to present a Pill Picker view
 
 ## How it looks
 
+<div style="display:flex; justify-content: center;">
+    <div>
+        <h4>Static placement</h4>
+        <img src="Assets/Showroom_1.png" alt="PillPickerView example 1" style="width: 200px;margin-right:50px;"/>
+    </div>
+    <div>
+        <h4>Flowing placement</h4>
+        <img src="Assets/Showroom_2.png" alt="PillPickerView example 2" style="width: 200px;"/>
+    </div>
+</div>
+
+<br>
+
+Demo: 
 https://github.com/adisve/PillPickerView/assets/96535657/4f052e75-36f1-4f59-9664-0a187b07de28
 
 <br>
@@ -162,6 +176,15 @@ To change the font of the pills
 
 ```swift
 .pillFont(.caption)
+```
+
+<br>
+
+You can of course chain things together to get a good layout based on your circumstances and requirements.
+
+```swift
+.pillFont(.title3)
+.pillViewHorizontalSpacing(30)
 ```
 
 <br>
