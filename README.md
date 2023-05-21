@@ -1,7 +1,7 @@
 
 <img src="Assets/Header.png" alt="PillPickerView Logo" style="height: 150px;"/>
 
-# PillPickerView
+<br>
 
 A SwiftUI library to present a Pill Picker view
 
