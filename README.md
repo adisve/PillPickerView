@@ -21,6 +21,20 @@ A SwiftUI library to present a Pill Picker view
 
 ## How it looks
 
+<div style="display:flex; justify-content: center;">
+    <div>
+        <h4>Static placement</h4>
+        <img src="Assets/Showroom_1.png" alt="PillPickerView example 1" style="width: 200px;margin-right:50px;"/>
+    </div>
+    <div>
+        <h4>Flowing placement</h4>
+        <img src="Assets/Showroom_2.png" alt="PillPickerView example 2" style="width: 200px;"/>
+    </div>
+</div>
+
+<br>
+
+Demo: 
 https://github.com/adisve/PillPickerView/assets/96535657/4f052e75-36f1-4f59-9664-0a187b07de28
 
 <br>
@@ -124,7 +138,11 @@ In the example above, replace YourPillType with your custom pill type and yourIt
 
 PillPickerView offers a range of customization options to tailor the appearance of the pills to your app's design. You can customize the font, colors, animation, size, and other visual aspects of the pills by using the available modifier functions. 
 
+The PillPickerView includes a wrapping mechanism that automatically adjusts the layout of pills to fit within the available space. If the pills exceed the horizontal width of the container, the view wraps the excess pills to a new line. This makes it easy to present a large number of pills without worrying about truncation.
+
 You can customize the appearance of the pills by chaining the available modifier functions on the PillPickerView. For example:
+
+<br>
 
 ```swift
 PillPickerView(
@@ -138,10 +156,44 @@ PillPickerView(
 
 <br>
 
+To switch between the underlying stack style for the content. Choosing `.noWrap` will invariably cause any text inside the pills to be truncated depending on length, as it will automatically be fitted inside the view and not wrap to a new line. Choosing `.wrap` will let the pills be dynamically placed an move in the PillPickerView.
+
+```swift
+.pillStackStyle(.noWrap) // Prevents pills from wrapping to a new line and being dynamic
+.pillStackStyle(.wrap) // Default value. Allows pills to move in container
+```
+
+<br>
+
+To modify the vertical or horizontal spacing in the PillPickerView
+
+```swift
+.pillViewVerticalSpacing(10)
+.pillViewHorizontalSpacing(5)
+```
+
 To change the font of the pills
 
 ```swift
 .pillFont(.caption)
+```
+
+<br>
+
+You can of course chain things together to get a good layout based on your circumstances and requirements.
+
+```swift
+.pillFont(.title3)
+.pillViewHorizontalSpacing(30)
+```
+
+<br>
+
+To change the icon used by each pill when it is 'selected'.
+I advise you to choose something that indicates that the pill will no longer be selected if this icon is pressed, as this is the intended behavior.
+
+```swift
+.pillSelectedIcon(Image(systemName: "xmark"))
 ```
 
 <br>
@@ -195,9 +247,3 @@ Padding can also be applied
 ```swift
 .pillPadding(10)
 ```
-
-<br>
-
-## Note:
-
-The PillPickerView includes a wrapping mechanism that automatically adjusts the layout of pills to fit within the available space. If the pills exceed the horizontal width of the container, the view wraps the excess pills to a new line. This makes it easy to present a large number of pills without worrying about truncation.

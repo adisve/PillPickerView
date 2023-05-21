@@ -38,6 +38,15 @@ public protocol Pill: Equatable, Hashable {
     var title: String { get }
 }
 
+// MARK: - Enums
+
+/// The style the pill content has, whether
+/// it is dynamic and wrapping or statically placed
+public enum StackStyle {
+    case wrap
+    case noWrap
+}
+
 // MARK: - Pill customizations
 
 public struct PillOptions {
@@ -52,8 +61,8 @@ public struct PillOptions {
     /// when animating in/out in its parent view
     public var animation: Animation = .spring()
     
-    /// Width of the pill
-    public var width: CGFloat = 50
+    /// Minimum width of the pill
+    public var minWidth: CGFloat = 50
     
     /// Height of the pill
     public var height: CGFloat = 15
@@ -78,6 +87,17 @@ public struct PillOptions {
     /// Padding of elements inside PillItem
     public var padding: CGFloat = 5
     
+    /// Whether pills should wrap to new line or not
+    public var stackStyle: StackStyle = StackStyle.noWrap
+    
+    /// Spacing applied vertically between pill rows
+    public var verticalSpacing: CGFloat = 5
+    
+    /// Spacing applied horizontally between pills
+    public var horizontalSpacing: CGFloat = 2
+    
+    /// Icon displayed in the pill when selected
+    public var selectedIcon: Image = Image(systemName: "xmark")
 }
 
 // MARK: - Main view
@@ -109,13 +129,16 @@ public struct PillPickerView<T: Pill>: View {
     // MARK: - Body
     
     public var body: some View {
-        FlowStack(items: items, viewGenerator: { item in
-            PillView(
-                options: options,
-                item: item,
-                selectedPills: $selectedPills
-            )
-        })
+        switch options.stackStyle {
+        case StackStyle.noWrap:
+            StaticStack(options: options, items: items, viewGenerator: { item in
+                PillView(options: options, item: item, selectedPills: $selectedPills)
+            })
+        case StackStyle.wrap:
+            FlowStack(options: options, items: items, viewGenerator: { item in
+                PillView(options: options, item: item, selectedPills: $selectedPills)
+            })
+        }
     }
 }
 
@@ -164,9 +187,9 @@ public extension PillPickerView {
     }
     
     /// The minimum width of each pill
-    func pillWidth(_ value: CGFloat) -> PillPickerView {
+    func pillMinWidth(_ value: CGFloat) -> PillPickerView {
         var view = self
-        view.options.width = value
+        view.options.minWidth = value
         return view
     }
 
@@ -199,15 +222,44 @@ public extension PillPickerView {
         return view
     }
     
+    /// Padding of content inside each pill
     func pillPadding(_ value: CGFloat) -> PillPickerView {
         var view = self
         view.options.padding = value
         return view
     }
     
+    /// The stack style the PillPickerView uses, either wrapping
+    /// the pills to new lines or having them statically placed
+    func pillStackStyle(_ value: StackStyle) -> PillPickerView {
+        var view = self
+        view.options.stackStyle = value
+        return view
+    }
+    
+    /// Set the vertical spacing of pills inside PillPickerView
+    func pillViewVerticalSpacing(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.verticalSpacing = value
+        return view
+    }
+    
+    /// Set the horizontal spacing of pills inside PillPickerView
+    func pillViewHorizontalSpacing(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.horizontalSpacing = value
+        return view
+    }
+    
+    func pillSelectedIcon(_ value: Image) -> PillPickerView {
+        var view = self
+        view.options.selectedIcon = value
+        return view
+    }
+    
 }
 
-// MARK: - Child views
+// MARK: - Pill View
 
 /// View containing the selectable element
 struct PillView<T: Pill>: View {
@@ -238,7 +290,7 @@ struct PillView<T: Pill>: View {
                     .font(options.font)
                     .foregroundColor(pillForegroundColor)
                 if isItemSelected() {
-                    Image(systemName: "xmark")
+                    options.selectedIcon
                         .font(options.font)
                         .foregroundColor(pillForegroundColor)
                         .padding(.leading, 5)
@@ -250,7 +302,7 @@ struct PillView<T: Pill>: View {
                 }
             }
             .padding(options.padding)
-            .frame(minWidth: options.width)
+            .frame(minWidth: options.minWidth)
         })
         .buttonStyle(
             PillItemStyle(
@@ -322,19 +374,16 @@ struct PillItemStyle: ButtonStyle {
     }
 }
 
+// MARK: - StaticStack
 
 
-// MARK: - FlowStack
-
-/// View which automatically wraps element
-/// in a HStack to a newline if it overflows
-/// horizontally and does not fit the screen dimensions
-public struct FlowStack<T, V>: View where T: Hashable, V: View {
-    
-    // MARK: - Types and Properties
+/// Stack of pills not wrapping to a new line
+struct StaticStack<T, V>: View where T: Pill, V: View {
     
     /// Alias for function type generating content
     typealias ContentGenerator = (T) -> V
+    
+    let options: PillOptions
     
     /// Collection of items passed to view
     var items: [T]
@@ -342,11 +391,102 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
     /// Content generator function
     var viewGenerator: ContentGenerator
     
-    /// Horizontal spacing of each item
-    var horizontalSpacing: CGFloat = 2
+    /// Chunk size which `items` is divided into
+    @State private var chunkSize: Int = 1
     
-    /// Vertical spacing for each item
-    var verticalSpacing: CGFloat = 0
+    /// Current total height calculated
+    @State private var totalHeight = CGFloat.zero
+    
+    private func calculateChunkSize(geometry: GeometryProxy) {
+        let availableWidth = geometry.size.width
+        let itemWidth: CGFloat = 100
+        
+        chunkSize = max(Int(availableWidth / (itemWidth + options.horizontalSpacing)), 1)
+    }
+    
+    // MARK: - Height Calculation
+    
+    /// Used to calculate the total height of the view. It wraps the ZStack
+    /// in a GeometryReader to obtain the height of the content and updates
+    /// the `totalHeight` state variable accordingly.
+    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+        return GeometryReader { geometry -> Color in
+            let rect = geometry.frame(in: .local)
+            DispatchQueue.main.async {
+                binding.wrappedValue = rect.size.height
+            }
+            return .clear
+        }
+    }
+    
+    var body: some View {
+        VStack {
+            GeometryReader { geometry in
+                VStack(spacing: options.verticalSpacing) {
+                    ForEach(items.chunked(into: chunkSize), id: \.self) { chunk in
+                        HStack(spacing: options.horizontalSpacing) {
+                            ForEach(chunk, id: \.self) { item in
+                                viewGenerator(item)
+                            }
+                        }
+                        .frame(width: geometry.size.width, alignment: .leading)
+                    }
+                }
+                
+                /// Necessary to get generated height
+                /// of child elements combined, then
+                /// set the parent `VStack` height accordingly
+                .background(viewHeightReader($totalHeight))
+                
+                .onAppear {
+                    calculateChunkSize(geometry: geometry)
+                }
+                
+                /// Dynamically generate chunk size based on
+                /// screen direction and dimension
+                .onChange(of: geometry.size.width) { _ in
+                    calculateChunkSize(geometry: geometry)
+                }
+            }
+        }
+        .frame(height: totalHeight)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Extension
+
+extension Array {
+    
+    /// This method takes an integer `size`
+    /// and returns a two-dimensional array ([[Element]])
+    /// where the original array is divided into chunks of the specified size.
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
+        }
+    }
+}
+
+// MARK: - FlowStack
+
+/// View which automatically wraps element
+/// in a HStack to a newline if it overflows
+/// horizontally and does not fit the screen dimensions
+public struct FlowStack<T, V>: View where T: Pill, V: View {
+    
+    // MARK: - Types and Properties
+    
+    /// Alias for function type generating content
+    typealias ContentGenerator = (T) -> V
+    
+    let options: PillOptions
+    
+    /// Collection of items passed to view
+    var items: [T]
+    
+    /// Content generator function
+    var viewGenerator: ContentGenerator
 
     /// Current total height calculated
     @State private var totalHeight = CGFloat.zero
@@ -371,8 +511,8 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         return ZStack(alignment: .topLeading) {
             ForEach(items, id: \.self) { item in
                 viewGenerator(item)
-                    .padding(.horizontal, horizontalSpacing)
-                    .padding(.vertical, verticalSpacing)
+                    .padding(.horizontal, options.horizontalSpacing)
+                    .padding(.vertical, options.verticalSpacing)
                     .alignmentGuide(.leading, computeValue: { dimension in
                         return calculateLeadingAlignment(dimension: dimension, item: item)
                     })
@@ -385,6 +525,10 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         
         // MARK: - Alignment calculations
         
+        /// Checks if adding the item's width to the current width value exceeds the
+        /// available width (given by `geometry.size.width`). If it does, it resets width
+        /// to 0 and subtracts the item's height from height to move to the next row.
+        /// Otherwise, it returns the current `width` value and updates `width` by subtracting the item's width.
         func calculateLeadingAlignment(dimension: ViewDimensions, item: T) -> CGFloat {
             if abs(width - dimension.width) > geometry.size.width {
                 width = 0
@@ -399,6 +543,9 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
             return result
         }
         
+        /// Used to calculate the top (vertical) alignment for each item.
+        /// It receives the item itself and returns the current height value.
+        /// If the item is the last one, it resets `height` to 0.
         func calculateTopAlignment(item: T) -> CGFloat {
             let result = height
             if item == items.last {
@@ -408,16 +555,18 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         }
         
     }
+}
 
-    // MARK: - Height Calculation
+/// MARK: - Utility functions
 
-    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
-        return GeometryReader { geometry -> Color in
-            let rect = geometry.frame(in: .local)
-            DispatchQueue.main.async {
-                binding.wrappedValue = rect.size.height
-            }
-            return .clear
+/// Get height of context and set passed binding
+/// parameter based on received value
+func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+    return GeometryReader { geometry -> Color in
+        let rect = geometry.frame(in: .local)
+        DispatchQueue.main.async {
+            binding.wrappedValue = rect.size.height
         }
+        return .clear
     }
 }
