@@ -270,7 +270,7 @@ public extension PillPickerView {
     
 }
 
-// MARK: - Child views
+// MARK: - Pill View
 
 /// View containing the selectable element
 struct PillView<T: Pill>: View {
@@ -405,34 +405,63 @@ struct StaticStack<T, V>: View where T: Hashable, V: View {
     /// Chunk size which `items` is divided into
     @State private var chunkSize: Int = 1
     
+    /// Current total height calculated
+    @State private var totalHeight = CGFloat.zero
+    
     private func calculateChunkSize(geometry: GeometryProxy) {
         let availableWidth = geometry.size.width
         let itemWidth: CGFloat = 100
         
-        chunkSize = max(Int(availableWidth / itemWidth), 1)
+        chunkSize = max(Int(availableWidth / (itemWidth + options.horizontalSpacing)), 1)
+    }
+    
+    // MARK: - Height Calculation
+    
+    /// Used to calculate the total height of the view. It wraps the ZStack
+    /// in a GeometryReader to obtain the height of the content and updates
+    /// the `totalHeight` state variable accordingly.
+    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+        return GeometryReader { geometry -> Color in
+            let rect = geometry.frame(in: .local)
+            DispatchQueue.main.async {
+                binding.wrappedValue = rect.size.height
+            }
+            return .clear
+        }
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            VStack(alignment: options.staticAlignment, spacing: options.verticalSpacing) {
-                ForEach(items.chunked(into: chunkSize), id: \.self) { chunk in
-                    HStack(spacing: options.horizontalSpacing) {
-                        ForEach(chunk, id: \.self) { item in
-                            viewGenerator(item)
+        VStack {
+            GeometryReader { geometry in
+                VStack(spacing: options.verticalSpacing) {
+                    ForEach(items.chunked(into: chunkSize), id: \.self) { chunk in
+                        HStack(spacing: options.horizontalSpacing) {
+                            ForEach(chunk, id: \.self) { item in
+                                viewGenerator(item)
+                            }
                         }
+                        .frame(width: geometry.size.width, alignment: options.wrappingAlignment)
                     }
                 }
-            }
-            .onAppear {
-                calculateChunkSize(geometry: geometry)
-            }
-            
-            /// Dynamically generate chunk size based on
-            /// screen direction and dimension
-            .onChange(of: geometry.size.width) { _ in
-                calculateChunkSize(geometry: geometry)
+                
+                /// Necessary to get generated height
+                /// of child elements combined, then
+                /// set the parent `VStack` height accordingly
+                .background(viewHeightReader($totalHeight))
+                
+                .onAppear {
+                    calculateChunkSize(geometry: geometry)
+                }
+                
+                /// Dynamically generate chunk size based on
+                /// screen direction and dimension
+                .onChange(of: geometry.size.width) { _ in
+                    calculateChunkSize(geometry: geometry)
+                }
             }
         }
+        .frame(height: totalHeight)
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -481,7 +510,7 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
                 generateContent(in: geometry)
             }
         }
-        .frame(maxHeight: totalHeight)
+        .frame(height: totalHeight)
     }
 
     // MARK: - Content Generation
@@ -512,7 +541,7 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         /// to 0 and subtracts the item's height from height to move to the next row.
         /// Otherwise, it returns the current `width` value and updates `width` by subtracting the item's width.
         func calculateLeadingAlignment(dimension: ViewDimensions, item: T) -> CGFloat {
-            if abs(width - (dimension.width + dimension.width / 2)) > geometry.size.width {
+            if abs(width - dimension.width) > geometry.size.width {
                 width = 0
                 height -= dimension.height
             }
@@ -537,19 +566,18 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         }
         
     }
+}
 
-    // MARK: - Height Calculation
-    
-    /// Used to calculate the total height of the view. It wraps the ZStack
-    /// in a GeometryReader to obtain the height of the content and updates
-    /// the `totalHeight` state variable accordingly.
-    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
-        return GeometryReader { geometry -> Color in
-            let rect = geometry.frame(in: .local)
-            DispatchQueue.main.async {
-                binding.wrappedValue = rect.size.height
-            }
-            return .clear
+/// MARK: - Utility functions
+
+/// Get height of context and set passed binding
+/// parameter based on received value
+func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+    return GeometryReader { geometry -> Color in
+        let rect = geometry.frame(in: .local)
+        DispatchQueue.main.async {
+            binding.wrappedValue = rect.size.height
         }
+        return .clear
     }
 }
