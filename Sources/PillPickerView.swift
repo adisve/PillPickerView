@@ -40,6 +40,8 @@ public protocol Pill: Equatable, Hashable {
 
 // MARK: - Enums
 
+/// The style the pill content has, whether
+/// it is dynamic and wrapping or statically placed
 public enum StackStyle {
     case wrap
     case noWrap
@@ -94,13 +96,8 @@ public struct PillOptions {
     /// Spacing applied horizontally between pills
     public var horizontalSpacing: CGFloat = 2
     
-    /// The alignment of the pills in the `PillPickerView`
-    /// when not wrapping the content
-    public var staticAlignment: HorizontalAlignment = .leading
-    
-    /// The alignment of the pills in the `PillPickerView`
-    /// when it is wrapping the content
-    public var wrappingAlignment: Alignment = .topLeading
+    /// Icon displayed in the pill when selected
+    public var selectedIcon: Image = Image(systemName: "xmark")
 }
 
 // MARK: - Main view
@@ -254,17 +251,9 @@ public extension PillPickerView {
         return view
     }
     
-    /// Set alignment of pills when statically placed
-    func pillViewStaticAlignment(_ value: HorizontalAlignment) -> PillPickerView {
+    func pillSelectedIcon(_ value: Image) -> PillPickerView {
         var view = self
-        view.options.staticAlignment = value
-        return view
-    }
-    
-    /// Set alignment of pills when dynamically placed and wrapping
-    func pillViewWrappingAlignment(_ value: Alignment) -> PillPickerView {
-        var view = self
-        view.options.wrappingAlignment = value
+        view.options.selectedIcon = value
         return view
     }
     
@@ -301,7 +290,7 @@ struct PillView<T: Pill>: View {
                     .font(options.font)
                     .foregroundColor(pillForegroundColor)
                 if isItemSelected() {
-                    Image(systemName: "xmark")
+                    options.selectedIcon
                         .font(options.font)
                         .foregroundColor(pillForegroundColor)
                         .padding(.leading, 5)
@@ -389,7 +378,7 @@ struct PillItemStyle: ButtonStyle {
 
 
 /// Stack of pills not wrapping to a new line
-struct StaticStack<T, V>: View where T: Hashable, V: View {
+struct StaticStack<T, V>: View where T: Pill, V: View {
     
     /// Alias for function type generating content
     typealias ContentGenerator = (T) -> V
@@ -440,7 +429,7 @@ struct StaticStack<T, V>: View where T: Hashable, V: View {
                                 viewGenerator(item)
                             }
                         }
-                        .frame(width: geometry.size.width, alignment: options.wrappingAlignment)
+                        .frame(width: geometry.size.width, alignment: .leading)
                     }
                 }
                 
@@ -484,7 +473,7 @@ extension Array {
 /// View which automatically wraps element
 /// in a HStack to a newline if it overflows
 /// horizontally and does not fit the screen dimensions
-public struct FlowStack<T, V>: View where T: Hashable, V: View {
+public struct FlowStack<T, V>: View where T: Pill, V: View {
     
     // MARK: - Types and Properties
     
@@ -519,7 +508,7 @@ public struct FlowStack<T, V>: View where T: Hashable, V: View {
         var width = CGFloat.zero
         var height = CGFloat.zero
 
-        return ZStack(alignment: options.wrappingAlignment) {
+        return ZStack(alignment: .topLeading) {
             ForEach(items, id: \.self) { item in
                 viewGenerator(item)
                     .padding(.horizontal, options.horizontalSpacing)

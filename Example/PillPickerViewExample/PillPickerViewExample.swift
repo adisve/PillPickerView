@@ -24,48 +24,61 @@ struct ContentView: View {
     /// Required collection of items confirming to `Pill`
     /// which will be used for tracking which objects
     /// are selected
-    @State private var selectedColors: [ColorPill] = []
+    @State private var selectedGenres: [Genre] = []
     
     var body: some View {
         NavigationView {
-            TabView {
-                
-                /// Example view where pills wrap to new line and only occupy
-                /// necessary space
-                ExampleBuilder(selectedColors: $selectedColors, content: {
-                    PillPickerView(items: colorPills, selectedPills: $selectedColors)
-                        .pillStackStyle(.wrap)
-                })
-                .tag(0)
-                .navigationTitle("Wrapping pills")
-                
-                /// Example view where pills do not wrap to new line and occupy
-                /// set amount of space horizontally and vertically
-                ExampleBuilder(selectedColors: $selectedColors, content: {
-                    PillPickerView(items: colorPills, selectedPills: $selectedColors)
-                        .pillStackStyle(.noWrap)
-                })
-                .tag(1)
-                .navigationTitle("Static pills")
+            VStack {
+                TabView {
+                    
+                    /// Example view where pills wrap to new line and only occupy
+                    /// necessary space
+                    ExampleBuilder(selectedItems: $selectedGenres, content: {
+                        PillPickerView(items: genres, selectedPills: $selectedGenres)
+                            .pillStackStyle(.wrap)
+                    })
+                    .tag(0)
+                    .navigationTitle("Wrapping pills")
+                    
+                    /// Example view where pills do not wrap to new line and occupy
+                    /// set amount of space horizontally and vertically
+                    ExampleBuilder(selectedItems: $selectedGenres, content: {
+                        PillPickerView(items: genres, selectedPills: $selectedGenres)
+                            .pillStackStyle(.noWrap)
+                    })
+                    .tag(1)
+                    .navigationTitle("Static pills")
+                }
+                .tabViewStyle(.page)
+                .tint(.accentColor)
             }
-            .tabViewStyle(.page)
-            .tint(.accentColor)
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing, content: {
+                    Button(action: {
+                        withAnimation {
+                            selectedGenres.removeAll()
+                        }
+                    }, label: {
+                        Text("Clear All")
+                    })
+                })
+            })
         }
     }
 }
 
-struct ExampleBuilder<V : View>: View {
+struct ExampleBuilder<T, V>: View where T: Pill, V: View {
     
     typealias ContentGenerator = () -> V
     
-    @Binding var selectedColors: [ColorPill]
+    @Binding var selectedItems: [T]
     
     var content: ContentGenerator
     
     var body: some View {
         ScrollView (showsIndicators: false) {
             HStack {
-                Text("Select Your Favorite Colors")
+                Text("Select Your Favorite Genres")
                     .font(.system(size: 26, weight: .semibold, design: .rounded))
                 Spacer()
             }
@@ -74,17 +87,26 @@ struct ExampleBuilder<V : View>: View {
             /// PillPickerView usage example
             content()
             
-            Text("Selected Colors:")
+            Text("Selected Genres:")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .padding(.top, 30)
             
-            HStack(spacing: 10) {
-                ForEach(selectedColors, id: \.self) { colorPill in
-                    RoundedRectangle(cornerRadius: 40)
-                        .foregroundColor(colorPill.color)
-                        .frame(width: 40, height: 40)
+            VStack(spacing: 10) {
+                ForEach(selectedItems, id: \.self) { item in
+                    HStack {
+                        Text(item.title)
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .foregroundColor(.accentColor)
+                    )
                 }
             }
+            .padding(.bottom, 60)
             
             Spacer()
         }
@@ -94,18 +116,30 @@ struct ExampleBuilder<V : View>: View {
 
 /// Sample model conforming to the `Pill` protocol.
 /// An element must have a `title` attribute.
-struct ColorPill: Pill {
+struct Genre: Pill {
     let title: String
-    let color: Color
 }
 
 /// Collection of items conforming to `Pill`
-let colorPills: [ColorPill] = [
-    ColorPill(title: "Red", color: .red),
-    ColorPill(title: "Green", color: .green),
-    ColorPill(title: "Blue", color: .blue),
-    ColorPill(title: "Yellow", color: .yellow),
-    ColorPill(title: "Orange", color: .orange),
-    ColorPill(title: "Purple", color: .purple),
-    ColorPill(title: "Pink", color: .pink),
+let genres: [Genre] = [
+    Genre(title: "Action"),
+    Genre(title: "Adventure"),
+    Genre(title: "Comedy"),
+    Genre(title: "Drama"),
+    Genre(title: "Fantasy"),
+    Genre(title: "Horror"),
+    Genre(title: "Mystery"),
+    Genre(title: "Romance"),
+    Genre(title: "Sci-Fi"),
+    Genre(title: "Thriller"),
+    Genre(title: "Western"),
+    Genre(title: "Animation"),
+    Genre(title: "Documentary"),
+    Genre(title: "Historical"),
+    Genre(title: "Musical"),
+    Genre(title: "War"),
+    Genre(title: "Crime"),
+    Genre(title: "Family"),
+    Genre(title: "Sports"),
+    Genre(title: "Biography")
 ]
