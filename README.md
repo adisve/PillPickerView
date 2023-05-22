@@ -219,8 +219,18 @@ To change the foreground color of a not selected and selected pill, respectively
 The height and width of the pills can also be set, but width will be treated as the minimum width of the pills
 
 ```swift
-.pillWidth(20)
+.pillMinWidth(20)
 .pillHeight(10)
+```
+
+<br>
+
+This adds trailing and leading icons to the view, but only displays the trailing icons when the element has been selected.
+
+```swift
+.pillLeadingIcon(Image(systemName: "popcorn"))
+.pillTrailingIcon(Image(systemName: "checkmark"))
+.pillTrailingOnlySelected(true) /// Only when item is selected
 ```
 
 <br>

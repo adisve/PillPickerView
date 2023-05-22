@@ -36,6 +36,9 @@ struct ContentView: View {
                     ExampleBuilder(selectedItems: $selectedGenres, content: {
                         PillPickerView(items: genres, selectedPills: $selectedGenres)
                             .pillStackStyle(.wrap)
+                            .pillLeadingIcon(Image(systemName: "popcorn"))
+                            .pillTrailingIcon(Image(systemName: "checkmark"))
+                            .pillTrailingOnlySelected(true)
                     })
                     .tag(0)
                     .navigationTitle("Wrapping pills")
@@ -45,6 +48,9 @@ struct ContentView: View {
                     ExampleBuilder(selectedItems: $selectedGenres, content: {
                         PillPickerView(items: genres, selectedPills: $selectedGenres)
                             .pillStackStyle(.noWrap)
+                            .pillLeadingIcon(Image(systemName: "popcorn"))
+                            .pillTrailingIcon(Image(systemName: "checkmark"))
+                            .pillTrailingOnlySelected(true)
                     })
                     .tag(1)
                     .navigationTitle("Static pills")
