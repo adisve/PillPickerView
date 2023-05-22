@@ -407,11 +407,13 @@ struct StaticStack<T, V>: View where T: Pill, V: View {
     /// Current total height calculated
     @State private var totalHeight = CGFloat.zero
     
+    /// The calculateChunkSize function determines the optimal number
+    /// of items per chunk based on the available width of the view.
     private func calculateChunkSize(geometry: GeometryProxy) {
         let availableWidth = geometry.size.width
         let itemWidth: CGFloat = 100
         
-        chunkSize = max(Int(availableWidth / (itemWidth + options.minWidth)), 1)
+        chunkSize = max(Int(availableWidth / (itemWidth + options.minWidth + options.horizontalSpacing)), 1)
     }
     
     // MARK: - Height Calculation
