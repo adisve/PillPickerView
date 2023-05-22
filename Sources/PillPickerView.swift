@@ -66,8 +66,19 @@ public struct PillOptions {
     /// Spacing applied horizontally between pills
     public var horizontalSpacing: CGFloat = 2
     
-    /// Icon displayed in the pill when selected
-    public var selectedIcon: Image = Image(systemName: "xmark")
+    /// Trailing icon displayed inside the pills
+    public var trailingIcon: Image? = nil
+    
+    /// Leading icon displayed inside the pills
+    public var leadingIcon: Image? = nil
+    
+    /// Whether leading icon should only be displayed if
+    /// the element is selected or not
+    public var leadingOnlyWhenSelected: Bool = false
+    
+    /// Whether trailing icon should only be displayed if
+    /// the element is selected or not
+    public var trailingOnlyWhenSelected: Bool = false
 }
 
 // MARK: - Main view
@@ -221,9 +232,27 @@ public extension PillPickerView {
         return view
     }
     
-    func pillSelectedIcon(_ value: Image) -> PillPickerView {
+    func pillLeadingIcon(_ value: Image) -> PillPickerView {
         var view = self
-        view.options.selectedIcon = value
+        view.options.leadingIcon = value
+        return view
+    }
+    
+    func pillTrailingIcon(_ value: Image) -> PillPickerView {
+        var view = self
+        view.options.trailingIcon = value
+        return view
+    }
+    
+    func pillTrailingOnlySelected(_ value: Bool) -> PillPickerView {
+        var view = self
+        view.options.trailingOnlyWhenSelected = value
+        return view
+    }
+    
+    func pillLeadingOnlySelected(_ value: Bool) -> PillPickerView {
+        var view = self
+        view.options.leadingOnlyWhenSelected = value
         return view
     }
     
@@ -252,23 +281,20 @@ struct PillView<T: Pill>: View {
             withAnimation(options.animation) {
                 if !isItemSelected() {
                     selectedPills.append(item)
+                } else {
+                    selectedPills.removeAll(where: { $0 == item })
                 }
             }
         }, label: {
             HStack {
+                if !options.leadingOnlyWhenSelected || isItemSelected() {
+                    leadingIcon
+                }
                 Text(item.title)
                     .font(options.font)
                     .foregroundColor(pillForegroundColor)
-                if isItemSelected() {
-                    options.selectedIcon
-                        .font(options.font)
-                        .foregroundColor(pillForegroundColor)
-                        .padding(.leading, 5)
-                        .onTapGesture {
-                            withAnimation(options.animation) {
-                                selectedPills.removeAll(where: { $0 == item })
-                            }
-                        }
+                if !options.trailingOnlyWhenSelected || isItemSelected() {
+                    trailingIcon
                 }
             }
             .padding(options.padding)
@@ -284,6 +310,20 @@ struct PillView<T: Pill>: View {
         )
         .padding(5)
         .padding(.vertical, 2.5)
+    }
+    
+    var leadingIcon: some View {
+        options.leadingIcon
+            .font(options.font)
+            .foregroundColor(pillForegroundColor)
+            .padding(.leading, 5)
+    }
+    
+    var trailingIcon: some View {
+        options.trailingIcon
+            .font(options.font)
+            .foregroundColor(pillForegroundColor)
+            .padding(.leading, 5)
     }
     
     // MARK: - Helper Functions
@@ -371,7 +411,7 @@ struct StaticStack<T, V>: View where T: Pill, V: View {
         let availableWidth = geometry.size.width
         let itemWidth: CGFloat = 100
         
-        chunkSize = max(Int(availableWidth / (itemWidth + options.horizontalSpacing)), 1)
+        chunkSize = max(Int(availableWidth / (itemWidth + options.minWidth)), 1)
     }
     
     // MARK: - Height Calculation
