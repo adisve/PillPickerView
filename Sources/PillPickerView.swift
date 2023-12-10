@@ -79,6 +79,13 @@ public struct PillOptions {
     /// Whether trailing icon should only be displayed if
     /// the element is selected or not
     public var trailingOnlyWhenSelected: Bool = false
+    
+    
+    /// Background color of a pill when it is disabled
+    public var disabledBackgroundColor: Color = .gray
+    
+    /// Foreground color of a pill when it is disabled
+    public var disabledForegroundColor: Color = .white
 }
 
 // MARK: - Main view
@@ -313,6 +320,7 @@ struct PillView<T: Pill>: View {
         .buttonStyle(
             PillItemStyle(
                 selected: isItemSelected(),
+                disabled: isDisabled(),
                 borderColor: options.borderColor,
                 cornerRadius: options.cornerRadius,
                 options: options
@@ -349,9 +357,20 @@ struct PillView<T: Pill>: View {
     private var pillForegroundColor: Color {
         if isItemSelected() {
             return options.selectedForegroundColor
+        } else if isDisabled() {
+            return options.disabledForegroundColor
         }
         return options.normalForegroundColor
     }
+
+    
+    /// Determines if the pill should be in a disabled state
+        func isDisabled() -> Bool {
+            return selectedPills.count >= maxSelectablePills && !isItemSelected()
+        }
+    
+    
+    
 }
 
 // MARK: - Button Styles
@@ -363,6 +382,8 @@ struct PillItemStyle: ButtonStyle {
     /// Whether pill is selected or not
     let selected: Bool
     
+    let disabled: Bool
+    
     /// Border color of the pill
     let borderColor: Color
     
@@ -371,12 +392,15 @@ struct PillItemStyle: ButtonStyle {
     
     let options: PillOptions
     
+    
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(12)
             .background(background)
             .foregroundColor(foreground)
             .cornerRadius(cornerRadius)
+        
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(borderColor, lineWidth: 1)
@@ -386,12 +410,23 @@ struct PillItemStyle: ButtonStyle {
     }
     
     private var background: Color {
-        return selected ? options.selectedBackgroundColor : options.normalBackgroundColor
-    }
+            if selected {
+                return options.selectedBackgroundColor
+            } else if disabled {
+                return options.disabledBackgroundColor
+            }
+            return options.normalBackgroundColor
+        }
+
     
     private var foreground: Color {
-        return selected ? options.selectedForegroundColor : options.normalForegroundColor
-    }
+            if selected {
+                return options.selectedForegroundColor
+            } else if disabled {
+                return options.disabledForegroundColor
+            }
+            return options.normalForegroundColor
+        }
 }
 
 // MARK: - StaticStack
