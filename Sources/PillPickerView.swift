@@ -138,6 +138,20 @@ public struct PillPickerView<T: Pill>: View {
 
 public extension PillPickerView {
     
+    /// Set the background color for each pill when disabled
+        func pillDisabledBackgroundColor(_ value: Color) -> PillPickerView {
+            var view = self
+            view.options.disabledBackgroundColor = value
+            return view
+        }
+
+        /// Set the foreground color for the title and icon in each pill when disabled
+        func pillDisabledForegroundColor(_ value: Color) -> PillPickerView {
+            var view = self
+            view.options.disabledForegroundColor = value
+            return view
+        }
+    
     /// The foreground color used for the title
     /// and icon in each pill when not selected
     func pillNormalForegroundColor(_ value: Color) -> PillPickerView {
