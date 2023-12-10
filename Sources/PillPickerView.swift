@@ -55,13 +55,13 @@ public struct PillOptions {
     public var normalForegroundColor: Color = .white
     
     /// Padding of elements inside PillItem
-    public var padding: CGFloat = 5
+    public var padding: CGFloat = 2.5 // -> Custom changed
     
     /// Whether pills should wrap to new line or not
     public var stackStyle: StackStyle = StackStyle.noWrap
     
     /// Spacing applied vertically between pill rows
-    public var verticalSpacing: CGFloat = 5
+    public var verticalSpacing: CGFloat = 2.5 // -> Custom changed 
     
     /// Spacing applied horizontally between pills
     public var horizontalSpacing: CGFloat = 2
