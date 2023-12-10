@@ -366,6 +366,7 @@ struct PillView<T: Pill>: View {
         return selectedPills.contains(item)
     }
     
+   
     /// Retrieves the foreground color based
     /// on the state of the element
     private var pillForegroundColor: Color {
@@ -379,8 +380,13 @@ struct PillView<T: Pill>: View {
 
     
     /// Determines if the pill should be in a disabled state
-        func isDisabled() -> Bool {
-            return selectedPills.count >= maxSelectablePills && !isItemSelected()
+    func isDisabled() -> Bool {
+            // If the item is already selected, it's not disabled.
+            if isItemSelected() {
+                return false
+            }
+            // Disable if maxSelectablePills is reached but the item is not selected.
+            return selectedPills.count >= maxSelectablePills
         }
     
     
