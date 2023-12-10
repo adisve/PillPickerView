@@ -85,6 +85,8 @@ public struct PillOptions {
 
 public struct PillPickerView<T: Pill>: View {
     
+    let maxSelectablePills: Int
+    
     // MARK: - Properties
     
     /// Options for configuring each individual PillView
@@ -101,10 +103,12 @@ public struct PillPickerView<T: Pill>: View {
     
     public init(
         items: [T],
-        selectedPills: Binding<[T]>
+        selectedPills: Binding<[T]>,
+        maxSelectablePills: Int = Int.max
     ) {
         self.items = items
         self._selectedPills = selectedPills
+        self.maxSelectablePills = maxSelectablePills
     }
     
     // MARK: - Body
@@ -113,11 +117,11 @@ public struct PillPickerView<T: Pill>: View {
         switch options.stackStyle {
         case StackStyle.noWrap:
             StaticStack(options: options, items: items, viewGenerator: { item in
-                PillView(options: options, item: item, selectedPills: $selectedPills)
+                PillView(maxSelectablePills: maxSelectablePills, options: options, item: item, selectedPills: $selectedPills)
             })
         case StackStyle.wrap:
             FlowStack(options: options, items: items, viewGenerator: { item in
-                PillView(options: options, item: item, selectedPills: $selectedPills)
+                PillView(maxSelectablePills: maxSelectablePills, options: options, item: item, selectedPills: $selectedPills)
             })
         }
     }
@@ -265,6 +269,8 @@ struct PillView<T: Pill>: View {
     
     // MARK: - Properties
     
+    let maxSelectablePills: Int
+    
     let options: PillOptions
     
     /// Passed element conforming to PillItem
@@ -280,7 +286,11 @@ struct PillView<T: Pill>: View {
         Button(action: {
             withAnimation(options.animation) {
                 if !isItemSelected() {
-                    selectedPills.append(item)
+                    
+                    if selectedPills.count < maxSelectablePills {
+                        selectedPills.append(item)
+                    }
+                    
                 } else {
                     selectedPills.removeAll(where: { $0 == item })
                 }
