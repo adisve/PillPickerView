@@ -266,7 +266,7 @@ Padding can also be applied
 
 <br>
 
-If maxSelectablePill is set you can adjust th disabled state colors
+If maxSelectablePill is set you can adjust the disabled state colors
 
 ```swift
 .pillDisabledBackgroundColor(.gray.opacity(0.2))
