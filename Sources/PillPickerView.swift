@@ -55,13 +55,13 @@ public struct PillOptions {
     public var normalForegroundColor: Color = .white
     
     /// Padding of elements inside PillItem
-    public var padding: CGFloat = 5
+    public var padding: CGFloat = 2.5 // -> Custom changed
     
     /// Whether pills should wrap to new line or not
     public var stackStyle: StackStyle = StackStyle.noWrap
     
     /// Spacing applied vertically between pill rows
-    public var verticalSpacing: CGFloat = 5
+    public var verticalSpacing: CGFloat = 2.5 // -> Custom changed 
     
     /// Spacing applied horizontally between pills
     public var horizontalSpacing: CGFloat = 2
@@ -79,11 +79,20 @@ public struct PillOptions {
     /// Whether trailing icon should only be displayed if
     /// the element is selected or not
     public var trailingOnlyWhenSelected: Bool = false
+    
+    
+    /// Background color of a pill when it is disabled
+    public var disabledBackgroundColor: Color = .gray
+    
+    /// Foreground color of a pill when it is disabled
+    public var disabledForegroundColor: Color = .white
 }
 
 // MARK: - Main view
 
 public struct PillPickerView<T: Pill>: View {
+    
+    let maxSelectablePills: Int
     
     // MARK: - Properties
     
@@ -101,10 +110,12 @@ public struct PillPickerView<T: Pill>: View {
     
     public init(
         items: [T],
-        selectedPills: Binding<[T]>
+        selectedPills: Binding<[T]>,
+        maxSelectablePills: Int = Int.max
     ) {
         self.items = items
         self._selectedPills = selectedPills
+        self.maxSelectablePills = maxSelectablePills
     }
     
     // MARK: - Body
@@ -113,11 +124,11 @@ public struct PillPickerView<T: Pill>: View {
         switch options.stackStyle {
         case StackStyle.noWrap:
             StaticStack(options: options, items: items, viewGenerator: { item in
-                PillView(options: options, item: item, selectedPills: $selectedPills)
+                PillView(maxSelectablePills: maxSelectablePills, options: options, item: item, selectedPills: $selectedPills)
             })
         case StackStyle.wrap:
             FlowStack(options: options, items: items, viewGenerator: { item in
-                PillView(options: options, item: item, selectedPills: $selectedPills)
+                PillView(maxSelectablePills: maxSelectablePills, options: options, item: item, selectedPills: $selectedPills)
             })
         }
     }
@@ -126,6 +137,20 @@ public struct PillPickerView<T: Pill>: View {
 // MARK: - Extensions
 
 public extension PillPickerView {
+    
+    /// Set the background color for each pill when disabled
+        func pillDisabledBackgroundColor(_ value: Color) -> PillPickerView {
+            var view = self
+            view.options.disabledBackgroundColor = value
+            return view
+        }
+
+        /// Set the foreground color for the title and icon in each pill when disabled
+        func pillDisabledForegroundColor(_ value: Color) -> PillPickerView {
+            var view = self
+            view.options.disabledForegroundColor = value
+            return view
+        }
     
     /// The foreground color used for the title
     /// and icon in each pill when not selected
@@ -265,6 +290,8 @@ struct PillView<T: Pill>: View {
     
     // MARK: - Properties
     
+    let maxSelectablePills: Int
+    
     let options: PillOptions
     
     /// Passed element conforming to PillItem
@@ -280,7 +307,11 @@ struct PillView<T: Pill>: View {
         Button(action: {
             withAnimation(options.animation) {
                 if !isItemSelected() {
-                    selectedPills.append(item)
+                    
+                    if selectedPills.count < maxSelectablePills {
+                        selectedPills.append(item)
+                    }
+                    
                 } else {
                     selectedPills.removeAll(where: { $0 == item })
                 }
@@ -303,6 +334,7 @@ struct PillView<T: Pill>: View {
         .buttonStyle(
             PillItemStyle(
                 selected: isItemSelected(),
+                disabled: isDisabled(),
                 borderColor: options.borderColor,
                 cornerRadius: options.cornerRadius,
                 options: options
@@ -334,14 +366,31 @@ struct PillView<T: Pill>: View {
         return selectedPills.contains(item)
     }
     
+   
     /// Retrieves the foreground color based
     /// on the state of the element
     private var pillForegroundColor: Color {
         if isItemSelected() {
             return options.selectedForegroundColor
+        } else if isDisabled() {
+            return options.disabledForegroundColor
         }
         return options.normalForegroundColor
     }
+
+    
+    /// Determines if the pill should be in a disabled state
+    func isDisabled() -> Bool {
+            // If the item is already selected, it's not disabled.
+            if isItemSelected() {
+                return false
+            }
+            // Disable if maxSelectablePills is reached but the item is not selected.
+            return selectedPills.count >= maxSelectablePills
+        }
+    
+    
+    
 }
 
 // MARK: - Button Styles
@@ -353,6 +402,8 @@ struct PillItemStyle: ButtonStyle {
     /// Whether pill is selected or not
     let selected: Bool
     
+    let disabled: Bool
+    
     /// Border color of the pill
     let borderColor: Color
     
@@ -361,12 +412,15 @@ struct PillItemStyle: ButtonStyle {
     
     let options: PillOptions
     
+    
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(12)
             .background(background)
             .foregroundColor(foreground)
             .cornerRadius(cornerRadius)
+        
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(borderColor, lineWidth: 1)
@@ -376,12 +430,23 @@ struct PillItemStyle: ButtonStyle {
     }
     
     private var background: Color {
-        return selected ? options.selectedBackgroundColor : options.normalBackgroundColor
-    }
+            if selected {
+                return options.selectedBackgroundColor
+            } else if disabled {
+                return options.disabledBackgroundColor
+            }
+            return options.normalBackgroundColor
+        }
+
     
     private var foreground: Color {
-        return selected ? options.selectedForegroundColor : options.normalForegroundColor
-    }
+            if selected {
+                return options.selectedForegroundColor
+            } else if disabled {
+                return options.disabledForegroundColor
+            }
+            return options.normalForegroundColor
+        }
 }
 
 // MARK: - StaticStack
