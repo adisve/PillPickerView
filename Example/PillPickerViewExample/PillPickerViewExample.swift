@@ -54,6 +54,23 @@ struct ContentView: View {
                     })
                     .tag(1)
                     .navigationTitle("Static pills")
+                    
+                    /// Example view where pills wrap to new line and only occupy
+                    /// Set the limit for the number of pills that can be selected, and configure the appropriate options for the disabled state.
+                    
+                    ExampleBuilder(selectedItems: $selectedGenres, content: {
+                        PillPickerView(items: genres, selectedPills: $selectedGenres, maxSelectablePills: 5)
+                            .pillStackStyle(.wrap)
+                            .pillLeadingIcon(Image(systemName: "popcorn"))
+                            .pillTrailingIcon(Image(systemName: "checkmark"))
+                            .pillTrailingOnlySelected(true)
+                            .pillDisabledBackgroundColor(.gray.opacity(0.2))
+                            .pillDisabledForegroundColor(.gray.opacity(0.5))
+                        
+                    })
+                    .tag(2)
+                    .navigationTitle("Maximum Selectable Pills")
+                    
                 }
                 .tabViewStyle(.page)
                 .tint(.accentColor)

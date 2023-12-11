@@ -101,7 +101,8 @@ Instantiate a PillPickerView by providing the necessary parameters, such as the 
 ```swift
 PillPickerView(
     items: yourItemList,
-    selectedPills: $selectedPills
+    selectedPills: $selectedPills,
+    maxSelectablePill : 5 // Optional Property
 )
 ```
 
@@ -121,7 +122,8 @@ struct ContentView: View {
             
             PillPickerView(
                 items: yourItemList,
-                selectedPills: $selectedPills
+                selectedPills: $selectedPills,
+                maxSelectablePill : 5
             )
             
             // Your other content here
@@ -131,6 +133,7 @@ struct ContentView: View {
 ```
 
 In the example above, replace YourPillType with your custom pill type and yourItemList with an array of items conforming to the Pill protocol.
+The maxSelectablePills property is optional. If it is not set, all pills in the array can be selected. If it is set, only the specified number of pills can be selected, and the rest will be disabled.
 
 <br>
 
@@ -147,11 +150,14 @@ You can customize the appearance of the pills by chaining the available modifier
 ```swift
 PillPickerView(
     items: yourItemList,
-    selectedPills: $selectedPills
+    selectedPills: $selectedPills,
+    maxSelectablePill : 5
 )
 .pillFont(.system(size: 16, weight: .semibold))
 .pillSelectedForegroundColor(.white)
 .pillSelectedBackgroundColor(.blue)
+.pillDisabledBackgroundColor(.gray.opacity(0.2))
+.pillDisabledForegroundColor(.gray.opacity(0.5))
 ```
 
 <br>
@@ -257,6 +263,16 @@ Padding can also be applied
 ```swift
 .pillPadding(10)
 ```
+
+<br>
+
+If maxSelectablePill is set you can adjust th disabled state colors
+
+```swift
+.pillDisabledBackgroundColor(.gray.opacity(0.2))
+.pillDisabledForegroundColor(.gray.opacity(0.5))
+```
+
 
 ## License
 
