@@ -102,7 +102,7 @@ Instantiate a PillPickerView by providing the necessary parameters, such as the 
 PillPickerView(
     items: yourItemList,
     selectedPills: $selectedPills,
-    maxSelectablePill : 5 // Optional Property
+    maxSelectablePills : 5 // Optional Property
 )
 ```
 
@@ -151,7 +151,7 @@ You can customize the appearance of the pills by chaining the available modifier
 PillPickerView(
     items: yourItemList,
     selectedPills: $selectedPills,
-    maxSelectablePill : 5
+    maxSelectablePills : 5
 )
 .pillFont(.system(size: 16, weight: .semibold))
 .pillSelectedForegroundColor(.white)
@@ -222,11 +222,11 @@ To change the foreground color of a not selected and selected pill, respectively
 
 <br>
 
-The height and width of the pills can also be set, but width will be treated as the minimum width of the pills
+The height and width of the pills can also be set, but they will be treated as the minimum width of each pill
 
 ```swift
 .pillMinWidth(20)
-.pillHeight(10)
+.pillMinHeight(10)
 ```
 
 <br>
@@ -258,15 +258,16 @@ You can also change the animation used when a pill is pressed or wrapped to a ne
 
 <br>
 
-Padding can also be applied
+Padding can also be applied horizontally or vertically
 
 ```swift
-.pillPadding(10)
+.pillPaddingHorizontal(10)
+.pillPaddingVertical(10)
 ```
 
 <br>
 
-If maxSelectablePill is set you can adjust the disabled state colors
+If maxSelectablePills is set you can adjust the disabled state colors
 
 ```swift
 .pillDisabledBackgroundColor(.gray.opacity(0.2))

@@ -35,7 +35,7 @@ public struct PillOptions {
     public var minWidth: CGFloat = 50
     
     /// Height of the pill
-    public var height: CGFloat = 15
+    public var minHeight: CGFloat = 15
     
     /// Radius of the enclosing view of each pill
     public var cornerRadius: CGFloat = 40
@@ -54,8 +54,11 @@ public struct PillOptions {
     /// Foreground color of a pill when it is not selected
     public var normalForegroundColor: Color = .white
     
-    /// Padding of elements inside PillItem
-    public var padding: CGFloat = 2.5 // -> Custom changed
+    /// Vertical padding of content inside a pill
+    public var verticalPadding: CGFloat = 7.5
+    
+    /// Vertical padding of content inside a pill
+    public var horizontalPadding: CGFloat = 7.5
     
     /// Whether pills should wrap to new line or not
     public var stackStyle: StackStyle = StackStyle.noWrap
@@ -139,18 +142,18 @@ public struct PillPickerView<T: Pill>: View {
 public extension PillPickerView {
     
     /// Set the background color for each pill when disabled
-        func pillDisabledBackgroundColor(_ value: Color) -> PillPickerView {
-            var view = self
-            view.options.disabledBackgroundColor = value
-            return view
-        }
+    func pillDisabledBackgroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.disabledBackgroundColor = value
+        return view
+    }
 
-        /// Set the foreground color for the title and icon in each pill when disabled
-        func pillDisabledForegroundColor(_ value: Color) -> PillPickerView {
-            var view = self
-            view.options.disabledForegroundColor = value
-            return view
-        }
+    /// Set the foreground color for the title and icon in each pill when disabled
+    func pillDisabledForegroundColor(_ value: Color) -> PillPickerView {
+        var view = self
+        view.options.disabledForegroundColor = value
+        return view
+    }
     
     /// The foreground color used for the title
     /// and icon in each pill when not selected
@@ -199,10 +202,10 @@ public extension PillPickerView {
         return view
     }
 
-    /// The height of each pill
-    func pillHeight(_ value: CGFloat) -> PillPickerView {
+    /// The minimum height of each pill
+    func pillMinHeight(_ value: CGFloat) -> PillPickerView {
         var view = self
-        view.options.height = value
+        view.options.minHeight = value
         return view
     }
     
@@ -228,10 +231,17 @@ public extension PillPickerView {
         return view
     }
     
-    /// Padding of content inside each pill
-    func pillPadding(_ value: CGFloat) -> PillPickerView {
+    /// Horizontal padding of content inside each pill
+    func pillPaddingVertical(_ value: CGFloat) -> PillPickerView {
         var view = self
-        view.options.padding = value
+        view.options.verticalPadding = value
+        return view
+    }
+    
+    /// Horizontal padding of content inside each pill
+    func pillPaddingHorizontal(_ value: CGFloat) -> PillPickerView {
+        var view = self
+        view.options.horizontalPadding = value
         return view
     }
     
@@ -328,8 +338,7 @@ struct PillView<T: Pill>: View {
                     trailingIcon
                 }
             }
-            .padding(options.padding)
-            .frame(minWidth: options.minWidth)
+            .frame(minWidth: options.minWidth, minHeight: options.minHeight)
         })
         .buttonStyle(
             PillItemStyle(
@@ -413,14 +422,13 @@ struct PillItemStyle: ButtonStyle {
     let options: PillOptions
     
     
-    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(12)
+            .padding(.horizontal, options.horizontalPadding)
+            .padding(.vertical, options.verticalPadding)
             .background(background)
             .foregroundColor(foreground)
             .cornerRadius(cornerRadius)
-        
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(borderColor, lineWidth: 1)
